@@ -1,0 +1,63 @@
+{
+    "routes": [ {
+        "path": "/",
+        "callback": "application#index"
+    }, {
+        "path": "/office",
+        "method": "get",
+        "callback": "place#list"
+    }, {
+        "path": "/user/login",
+        "method": "post",
+        "callback": "user#login" 
+    }, {
+        "path": "/user/register",
+        "method": "post",
+        "callback": "user#register" 
+    }, {
+        "path": "/user/resetPwd",
+        "method": "post",
+        "callback": "user#resetPwd" 
+    }, {
+        "path": "/user/search",
+        "method": "get",
+        "callback": "user#list" 
+    }, {
+        "path": "/event/",
+        "method": "get",
+        "callback": "event#list" 
+    },
+    {
+        "path": "/event/byOffice",
+        "method": "get",
+        "callback": "event#byOffice"
+    },
+    {
+        "path": "/event/:id",
+        "method": "get",
+        "callback": "event#byId" 
+    },
+    {
+        "path": "/event/:id/join",
+        "method": "put",
+        "callback": "event#join" 
+    },
+    {
+        "path": "/event/:id/leave",
+        "method": "put",
+        "callback": "event#leave" 
+    },
+    {
+        "path": "/event/create",
+        "method": "post",
+        "callback": "event#create"
+    }  ],
+    "filters": [ {
+        "path": "/",
+        "callback": "session_filter#checkUserSession"
+    } ],
+    "websockets": [ {
+        "event": "",
+        "callback": ""
+    } ]
+}
