@@ -6,6 +6,10 @@
         "path": "/office",
         "method": "get",
         "callback": "place#list"
+    },{
+        "path": "/canteen/byOffice",
+        "method": "get",
+        "callback": "canteen#byOffice"
     }, {
         "path": "/user/login",
         "method": "post",
@@ -48,9 +52,13 @@
         "callback": "event#leave" 
     },
     {
-        "path": "/event/create",
+        "path": "/event",
         "method": "post",
         "callback": "event#create"
+    }, {
+        "path": "/event",
+        "method": "delete",
+        "callback": "event#deleteEvent"
     }  ],
     "filters": [ {
         "path": "/",

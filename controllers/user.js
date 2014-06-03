@@ -12,7 +12,7 @@ function list (req , res) {
 		per_page: req.body.per_page || 10000 // all?
 	} , function (e) {
 		if (e.success) {
-			
+
 			res.send({
 				users: e.users ,
 				status: "OK"
@@ -46,7 +46,7 @@ function login (req , res) {
 			});
 		}
 		else {
-		    console.log(JSON.stringify(data));
+			console.log(JSON.stringify(data));
 			res.send(401 , {
 				error: data.message ,
 				status: "ERROR"
@@ -60,6 +60,8 @@ function register (req , res) {
 		username: req.body.username ,
 		password: req.body.password ,
 		email: req.body.email ,
+		first_name: req.body.first_name,
+		last_name: req.body.last_name,
 		password_confirmation: req.body.password
 	} , function (e) {
 		var user;
@@ -68,6 +70,19 @@ function register (req , res) {
 			res.send(201 , {
 				session_id: e.meta.session_id ,
 				status: "OK"
+			});
+
+			ACS.Emails.send({
+				template: 'register' ,
+				recipients: req.body.email,
+				first_name: req.body.first_name
+			} , function (e) {
+				if (e.success) {
+					console.log("register email successfully sent.");
+				}
+				else {
+					console.log('Error:\n' + ( (e.error && e.message) || JSON.stringify(e)));
+				}
 			});
 		}
 		else {

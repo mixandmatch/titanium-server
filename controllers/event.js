@@ -41,7 +41,7 @@ function byId (req , res) {
 }
 
 function byOffice (req , res) {
-	console.log("event:byOffice id=" + req.params.office_id);
+	console.log("event:byOffice id=" + req.query.office_id);
 	//find all events that take place at the specificed office OR
 	// where the user is participant
 	ACS.Events.query({
@@ -50,7 +50,7 @@ function byOffice (req , res) {
 		}) ,
 		where: JSON.stringify({
 			"$or": [{
-				place_id: req.params.office_id
+				place_id: req.query.office_id
 			} , {
 				participant_0: req.session.user.id
 			} , {
@@ -242,10 +242,13 @@ function create (req , res) {
 		start_time: req.body.start_time ,
 		duration: req.body.duration ,
 		place_id: req.body.place_id ,
-		participants: [] ,
-		participant_0: "" ,
-		participant_1: "" ,
-		participant_2: ""
+		custom_fields: JSON.stringify({
+			participants: [] ,
+			participant_0: "" ,
+			participant_1: "" ,
+			participant_2: ""
+		})
+
 	} , function (e) {
 		if (e.success) {
 			res.send({
@@ -265,6 +268,33 @@ function create (req , res) {
 }
 
 function deleteEvent (req , res) {
+	console.log("event.deleteEvent id=" + req.body.id);
+	ACS.Events.show({
+		event_id: req.body.id
+	} , function (e) {
+		if (e.success) {
+			var event = e.events [0];
 
+			//if (event.user === req.session.user.id) {
+			if (true) {
+				// you're only allowed to delete an event if you're the
+				// organisator
+				console.log("about to remove event ...");
+				ACS.Events.remove({
+					event_id: req.body.id
+				} , function (e2) {
+					res.send(200);
+
+				} , req , res);
+			}
+			else {
+				console.log("Event doesn't belong to requesting user. cancelling.");
+				res.send(412 , {
+					message: e.message ,
+					status: "ERROR"
+				});
+			}
+		}
+	} , req , res);
 }
 
