@@ -144,14 +144,14 @@ function join (req , res) {
 
 							ACS.Events.update({
 								event_id: req.params.id ,
-								user_id: adminUserId ,
+								session_id: global.adminUserSession ,
 								custom_fields: custom_fields
 							} , function (e2) {
 								console.log(JSON.stringify(e2));
 								res.send({
 									status: "OK"
 								});
-							} , req , res);
+							});
 						}
 					}
 				}
@@ -209,14 +209,14 @@ function leave (req , res) {
 
 				ACS.Events.update({
 					event_id: req.params.id ,
-					user_id: adminUserId ,
+					session_id: global.adminUserSession ,
 					custom_fields: custom_fields
 				} , function (e2) {
 					console.log(JSON.stringify(e2));
 					res.send({
 						status: "OK"
 					});
-				} , req , res);
+				});
 
 			}
 			else {
@@ -237,34 +237,87 @@ function leave (req , res) {
 
 function create (req , res) {
 
-	ACS.Events.create({
-		name: req.body.name ,
-		start_time: req.body.start_time ,
-		duration: req.body.duration ,
-		place_id: req.body.place_id ,
-		custom_fields: JSON.stringify({
-			participants: [] ,
-			participant_0: "" ,
-			participant_1: "" ,
-			participant_2: ""
-		})
+	//TODO check if there is already a lunch date with the same
+	// place_id and start_time with at least on free seat.
+	// if so, join that lunch date. otherwise, create a lunch
+	// date
+
+	var _ = require("underscore");
+	var moment = require("moment");
+
+	ACS.Events.query({
+
+		start_time: moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00") ,
+		place_id: req.body.place_id
 
 	} , function (e) {
 		if (e.success) {
-			res.send({
-				"event": e.events [0] ,
-				status: "OK"
-			});
-			console.log(JSON.stringify(e));
+			var matchingLunchDateFound = false;
+			var events = e.events;
+
+			if (events.length > 0) {
+				for (var i = 0 ; i < events.length ; i++) {
+					// manually filter the number of participants. check if <= 2
+					// and not already participant
+					if (!matchingLunchDateFound && events [i].custom_fields.participants.length < 2) {
+						var alreadyParticipating = false;
+						//test if the current user isn't already participating
+						for (var j = 0 ; j < events [i].custom_fields.participants.length ; j++) {
+							if (events [i].custom_fields.participants [j].id === req.session.user.id) {
+
+								alreadyParticipating = true;
+							}
+						}
+						if (!alreadyParticipating) {
+							//join
+							_.extend(req , {
+								params: {
+									id: events [i].id
+								}
+							});
+
+							join(req , res);
+							matchingLunchDateFound = true;
+						}
+					}
+				}
+			}
 		}
-		else {
-			res.send(500 , {
-				message: e.message ,
-				status: "ERROR"
-			});
-			console.log(JSON.stringify(e));
+
+		if (!matchingLunchDateFound) {
+
+			//no matching lunch date found. create a new one.
+			ACS.Events.create({
+				name: req.body.name ,
+				start_time: moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00") ,
+				place_id: req.body.place_id ,
+				custom_fields: JSON.stringify({
+					participants: [] ,
+					participant_0: "" ,
+					participant_1: "" ,
+					participant_2: ""
+				})
+
+			} , function (e2) {
+				if (e2.success) {
+					res.send({
+						"event": e2.events [0] ,
+						status: "OK"
+					});
+					console.log(JSON.stringify(e2));
+				}
+				else {
+					res.send(500 , {
+						message: e2.message ,
+						status: "ERROR"
+					});
+					console.log(JSON.stringify(e2));
+				}
+			} , req , res);
 		}
+
 	} , req , res);
+
 }
 
 function deleteEvent (req , res) {
@@ -281,11 +334,13 @@ function deleteEvent (req , res) {
 				// organisator
 				console.log("about to remove event ...");
 				ACS.Events.remove({
-					event_id: req.body.id
+					event_id: req.body.id,
+					session_id: global.adminUserSession
 				} , function (e2) {
+				    console.log(JSON.stringify(e2));
 					res.send(200);
 
-				} , req , res);
+				});
 			}
 			else {
 				console.log("Event doesn't belong to requesting user. cancelling.");
@@ -294,6 +349,8 @@ function deleteEvent (req , res) {
 					status: "ERROR"
 				});
 			}
+		} else {
+		    console.log(JSON.stringify(e));
 		}
 	} , req , res);
 }

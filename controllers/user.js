@@ -56,43 +56,75 @@ function login (req , res) {
 }
 
 function register (req , res) {
-	ACS.Users.create({
-		username: req.body.username ,
-		password: req.body.password ,
-		email: req.body.email ,
-		first_name: req.body.first_name,
-		last_name: req.body.last_name,
-		password_confirmation: req.body.password
-	} , function (e) {
-		var user;
-		if (e.success) {
-			user = e.users [0];
-			res.send(201 , {
-				session_id: e.meta.session_id ,
-				status: "OK"
-			});
 
-			ACS.Emails.send({
-				template: 'register' ,
-				recipients: req.body.email,
-				first_name: req.body.first_name
-			} , function (e) {
-				if (e.success) {
-					console.log("register email successfully sent.");
-				}
-				else {
-					console.log('Error:\n' + ( (e.error && e.message) || JSON.stringify(e)));
-				}
-			});
-		}
-		else {
-			res.send(500 , {
-				error: e.message ,
-				status: "ERROR"
-			});
-		}
+	console.log("req.headers = " + JSON.stringify(req.headers));
 
-	} , req , res);
+	var fs = require("fs");
+
+	var tempfile = new Date ().getTime() + "_temp.png";
+
+	try {
+
+		fs.writeFileSync(tempfile , req.body.photo , 'base64' , function (err) {
+			console.log(err);
+		});
+
+		ACS.Users.create({
+			username: req.body.username ,
+			password: req.body.password ,
+			email: req.body.email ,
+			first_name: req.body.first_name ,
+			last_name: req.body.last_name ,
+			password_confirmation: req.body.password ,
+			photo: tempfile
+		} , function (e) {
+			var user;
+			if (e.success) {
+				user = e.users [0];
+				res.send(201 , {
+					session_id: e.meta.session_id ,
+					status: "OK"
+				});
+
+				ACS.Emails.send({
+					template: 'register' ,
+					from: "mixnmatch@thomas-reinberger.de" ,
+					recipients: req.body.email ,
+					first_name: req.body.first_name
+				} , function (e) {
+					if (e.success) {
+						console.log("register email successfully sent.");
+					}
+					else {
+						console.log('Error:\n' + ( (e.error && e.message) || JSON.stringify(e)));
+					}
+				});
+			}
+			else {
+				console.log(JSON.stringify(e));
+
+				res.send(500 , {
+					error: e.message ,
+					status: "ERROR"
+				});
+			}
+
+		} , req , res);
+	}
+	catch(err) {
+		console.log(JSON.stringify(err));
+	}
+	finally {
+		if (fs.existsSync(tempfile)) {
+		
+		fs.unlink(tempfile , function (err) {
+		if (err)
+		console.log(err);
+		console.log('successfully deleted : ' + tempfile);
+		});
+		}
+	}
+
 }
 
 function resetPwd (req , res) {
