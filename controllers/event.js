@@ -1,7 +1,7 @@
 var ACS = require('acs-node');
 var moment = require('moment');
 var adminUserId = "536cf0421316e90da82c8fd1";
-var MAX_NUMBER_PARTICIPANTS = 3;
+var MAX_NUMBER_PARTICIPANTS = 4;
 
 function list (req , res) {
 	ACS.Events.query({
@@ -46,7 +46,7 @@ function byOffice (req , res) {
 	// where the user is participant
 	ACS.Events.query({
 		sel: JSON.stringify({
-			"all": ["id" , "name" , "start_time" , "place" , "place.name" , "user" , "user.id" , "user.username" , "participant_0" , "participant_1" , "participant_2" , "participants"]
+			"all": ["id" , "name" , "start_time" , "place" , "place.name" , "user" , "user.id" , "user.username" , "participant_0" , "participant_1" , "participant_2" , "participant_3" , "participants"]
 		}) ,
 		where: JSON.stringify({
 			"$or": [{
@@ -58,9 +58,8 @@ function byOffice (req , res) {
 			} , {
 				participant_2: req.session.user.id
 			} , {
-				user_id: req.session.user.id
+				participant_3: req.session.user.id
 			}]
-
 		})
 	} , function (e) {
 		if (e.success) {
@@ -131,7 +130,7 @@ function join (req , res) {
 							// enable query operations
 
 							//-1 because we'll always have a date initiator
-							for (var i = 0 ; i < MAX_NUMBER_PARTICIPANTS - 1 ; i++) {
+							for (var i = 0 ; i < MAX_NUMBER_PARTICIPANTS; i++) {
 								if (custom_fields.participants [i]) {
 									custom_fields ["participant_" + i] = custom_fields.participants [i].id;
 								}
@@ -214,6 +213,8 @@ function leave (req , res) {
 				} , function (e2) {
 					console.log(JSON.stringify(e2));
 					res.send({
+					    id: req.params.id,
+					    action: "joined",
 						status: "OK"
 					});
 				});
@@ -244,10 +245,12 @@ function create (req , res) {
 
 	var _ = require("underscore");
 	var moment = require("moment");
+	
+	console.log("searching for existing lunch dates: " + moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00") + " at place_id = " + req.body.place_id);
 
 	ACS.Events.query({
 
-		start_time: moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00") ,
+		start_time: moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00ZZ") ,
 		place_id: req.body.place_id
 
 	} , function (e) {
@@ -257,9 +260,9 @@ function create (req , res) {
 
 			if (events.length > 0) {
 				for (var i = 0 ; i < events.length ; i++) {
-					// manually filter the number of participants. check if <= 2
+					// manually filter the number of participants. check if <= 3
 					// and not already participant
-					if (!matchingLunchDateFound && events [i].custom_fields.participants.length < 2) {
+					if (!matchingLunchDateFound && events [i].custom_fields.participants.length <= 3) {
 						var alreadyParticipating = false;
 						//test if the current user isn't already participating
 						for (var j = 0 ; j < events [i].custom_fields.participants.length ; j++) {
@@ -289,22 +292,29 @@ function create (req , res) {
 			//no matching lunch date found. create a new one.
 			ACS.Events.create({
 				name: req.body.name ,
-				start_time: moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00") ,
+				start_time: moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00ZZ") ,
 				place_id: req.body.place_id ,
 				custom_fields: JSON.stringify({
-					participants: [] ,
-					participant_0: "" ,
+					participants: [{
+						id: req.session.user.id ,
+						name: req.session.user.name ,
+						photo_id: req.session.user.photo.photo_id ,
+						photo_url: req.session.user.photo.urls.square_75
+					}] ,
+					participant_0: req.session.user.id ,
 					participant_1: "" ,
-					participant_2: ""
+					participant_2: "" ,
+					participant_3: ""
 				})
 
 			} , function (e2) {
 				if (e2.success) {
 					res.send({
-						"event": e2.events [0] ,
+						id: e2.events [0].id ,
+						action: "created",
 						status: "OK"
 					});
-					console.log(JSON.stringify(e2));
+
 				}
 				else {
 					res.send(500 , {
@@ -334,10 +344,10 @@ function deleteEvent (req , res) {
 				// organisator
 				console.log("about to remove event ...");
 				ACS.Events.remove({
-					event_id: req.body.id,
+					event_id: req.body.id ,
 					session_id: global.adminUserSession
 				} , function (e2) {
-				    console.log(JSON.stringify(e2));
+					console.log(JSON.stringify(e2));
 					res.send(200);
 
 				});
@@ -349,9 +359,58 @@ function deleteEvent (req , res) {
 					status: "ERROR"
 				});
 			}
-		} else {
-		    console.log(JSON.stringify(e));
+		}
+		else {
+			console.log(JSON.stringify(e));
 		}
 	} , req , res);
 }
 
+function mixParticipants (req , res) {
+	//find all events for a specific date and time and location
+	//mix the participants
+	//close the boarding gate for that event
+	//send out emails and/or icals to the participants
+	var _ = require("underscore");
+	
+	console.log("mixParticipants ...");
+	ACS.Places.query({
+		type: "canteen"
+	} , function (e) {
+
+		if (e.success) {
+
+			//iterate all canteens
+			for (var i = 0 ; i < e.places.length ; i++) {
+
+				ACS.Events.query({
+					id: e.places [i].id
+				} , function (e2) {
+					console.log(JSON.stringify(e2));
+					if (e2.success) {
+
+						var participants = [];
+
+						var participantArrays = _.map(e2.events , function (evt) {
+							return evt.custom_fields.participants;
+						});
+
+						for (var j = 0 ; j < participantArrays.length ; j++) {
+							for (var k = 0 ; k < participantArrays [j].length ; k++) {
+								participants.push(participantArrays[j] [k]);
+							}
+						}
+
+						//todo: mix participants and distribute them over the
+						// existing events. remove all other events
+						console.log("participants: " + JSON.stringify(participants));
+						res.send(participants);
+
+					}
+				} , req , res);
+
+			}
+		}
+	} , req , res);
+
+}

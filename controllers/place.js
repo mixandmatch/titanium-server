@@ -15,7 +15,8 @@ function list (req , res) {
             } ,
             type: "office"
         }
-        ,sel: JSON.stringify({all: ["id", "name", "address", "city", "postal_code", "latitude", "longitude", "photo", "photo.id", "photo.urls", "urls", "photo.urls.original"]})
+        //,sel: JSON.stringify({all: ["id", "name", "address", "city", "postal_code", "latitude", "longitude", "photo", "photo.id", "photo.urls", "urls", "photo.urls.original"]})
+        ,sel: JSON.stringify({all: ["id", "name", "address", "city", "postal_code", "latitude", "longitude"]})
     } , function (e) {
         if (e.success) {
             
@@ -32,7 +33,7 @@ function list (req , res) {
             });
             console.log("sorted Offices: " + JSON.stringify(sortedPlaces));
             
-            res.send(sortedPlaces);
+            res.send(JSON.stringify(sortedPlaces));
         }
         else {
             console.log(JSON.stringify(e));

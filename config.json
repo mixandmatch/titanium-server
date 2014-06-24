@@ -1,71 +1,76 @@
 {
-    "routes": [ {
-        "path": "/",
-        "callback": "application#index"
-    }, {
-        "path": "/office",
-        "method": "get",
-        "callback": "place#list"
-    },{
-        "path": "/canteen/byOffice",
-        "method": "get",
-        "callback": "canteen#byOffice"
-    }, {
-        "path": "/user/login",
-        "method": "post",
-        "callback": "user#login" 
-    }, {
-        "path": "/user/register",
-        "method": "post",
-        "callback": "user#register" 
-    }, {
-        "path": "/user/resetPwd",
-        "method": "post",
-        "callback": "user#resetPwd" 
-    }, {
-        "path": "/user/search",
-        "method": "get",
-        "callback": "user#list" 
-    }, {
-        "path": "/event/",
-        "method": "get",
-        "callback": "event#list" 
-    },
-    {
-        "path": "/event/byOffice",
-        "method": "get",
-        "callback": "event#byOffice"
-    },
-    {
-        "path": "/event/:id",
-        "method": "get",
-        "callback": "event#byId" 
-    },
-    {
-        "path": "/event/:id/join",
-        "method": "put",
-        "callback": "event#join" 
-    },
-    {
-        "path": "/event/:id/leave",
-        "method": "put",
-        "callback": "event#leave" 
-    },
-    {
-        "path": "/event",
-        "method": "post",
-        "callback": "event#create"
-    }, {
-        "path": "/event",
-        "method": "delete",
-        "callback": "event#deleteEvent"
-    }  ],
-    "filters": [ {
-        "path": "/",
-        "callback": "session_filter#checkUserSession"
-    } ],
-    "websockets": [ {
-        "event": "",
-        "callback": ""
-    } ]
+    "routes": [
+        {
+            "path": "/",
+            "callback": "application#index"
+        }, {
+            "path": "/office",
+            "method": "get",
+            "callback": "place#list"
+        }, {
+            "path": "/canteen/byOffice",
+            "method": "get",
+            "callback": "canteen#byOffice"
+        }, {
+            "path": "/user/login",
+            "method": "post",
+            "callback": "user#login"
+        }, {
+            "path": "/user/register",
+            "method": "post",
+            "callback": "user#register"
+        }, {
+            "path": "/user/resetPwd",
+            "method": "post",
+            "callback": "user#resetPwd"
+        }, {
+            "path": "/user/search",
+            "method": "get",
+            "callback": "user#list"
+        }, {
+            "path": "/event/",
+            "method": "get",
+            "callback": "event#list"
+        }, {
+            "path": "/event/byOffice",
+            "method": "get",
+            "callback": "event#byOffice"
+        }, {
+            "path": "/event/mix",
+            "method": "get",
+            "callback": "event#mixParticipants"
+        }, {
+            "path": "/event/:id",
+            "method": "get",
+            "callback": "event#byId"
+        }, {
+            "path": "/event/:id/join",
+            "method": "put",
+            "callback": "event#join"
+        }, {
+            "path": "/event/:id/leave",
+            "method": "put",
+            "callback": "event#leave"
+        }, {
+            "path": "/event",
+            "method": "post",
+            "callback": "event#create"
+        }, {
+            "path": "/event",
+            "method": "delete",
+            "callback": "event#deleteEvent"
+        }
+    ],
+    "filters": [
+        {
+            "path": "/",
+            "callback": "session_filter#checkUserSession"
+        }
+    ],
+    "websockets": [
+        {
+            "event": "",
+            "callback": ""
+        }
+    ]
 }
