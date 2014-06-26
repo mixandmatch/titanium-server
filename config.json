@@ -59,6 +59,10 @@
             "path": "/event",
             "method": "delete",
             "callback": "event#deleteEvent"
+        }, {
+            "path": "/event/deleteAll",
+            "method": "delete",
+            "callback": "event#deleteAll"
         }
     ],
     "filters": [
