@@ -117,7 +117,8 @@ function join(req, res) {
 								id : req.session.user.id,
 								name : req.session.user.name,
 								photo_id : req.session.user.photo.photo_id,
-								photo_url : req.session.user.photo.urls.square_75
+								photo_url : req.session.user.photo.urls.square_75,
+								email : req.session.user.email
 							});
 
 							//add string properties for each participant in order to
@@ -287,7 +288,8 @@ function create(req, res) {
 						id : req.session.user.id,
 						name : req.session.user.name,
 						photo_id : req.session.user.photo.photo_id,
-						photo_url : req.session.user.photo.urls.square_75
+						photo_url : req.session.user.photo.urls.square_75,
+						email : req.session.user.email
 					}],
 					participant_0 : req.session.user.id,
 					participant_1 : "",
