@@ -50,7 +50,7 @@ function byOffice (req , res) {
 		}) ,
 		where: JSON.stringify({
 			start_time: {
-				"$gte": moment()
+			"$gte": moment()
 			} ,
 			"$or": [{
 				place_id: req.query.office_id
@@ -296,7 +296,7 @@ function create (req , res) {
 		if (!matchingLunchDateFound) {
 
 			var lunchTag;
-
+			console.log("admin User session = " + global.adminUserSession + " :-)");
 			ACS.Objects.update({
 				id: "53abc7f7924865084b05e59f" ,
 				classname: 'counter' ,
@@ -307,8 +307,10 @@ function create (req , res) {
 				}) ,
 				sel: JSON.stringify({
 					"all": ["counter"]
-				})
+				}) ,
+				session_id: global.adminUserSession
 			} , function (coe) {
+				console.log(JSON.stringify(coe));
 				console.log(coe.counter [0].counter);
 				if (coe.success) {
 					lunchTag = coe.counter [0].counter;
@@ -354,7 +356,7 @@ function create (req , res) {
 						}
 					} , req , res);
 				}
-			} , req , res);
+			});
 
 		}
 
