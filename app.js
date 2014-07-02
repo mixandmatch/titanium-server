@@ -30,18 +30,17 @@ function start (app , express) {
 	var schedule = require('node-schedule');
 
 	var rule = new schedule.RecurrenceRule ();
-
-	//every 5 minute ...
-	rule.minute = new schedule.Range (0 , 59 , 1);
+    rule.minute = new schedule.Range (0 , 59 , 5);
 
 	schedule.scheduleJob(rule , function () {
-
+		console.log("scheduler job started ...");
 		ACS.Events.query({
 			sel: JSON.stringify({
-				"all": ["id" , "name" , "start_time" , "place" , "place.name" , "user" , "user.id" , "user.username" , "participants"]
+				"all": ["id" , "name" , "start_time" , "place" , "place.name" , "status" , "user" , "user.id" , "user.username" , "participants"]
 			}) ,
 			session_id: global.adminUserSession
 		} , function (e) {
+			console.log(JSON.stringify(e));
 			if (e.success) {
 				for (var i = 0 ; i < e.events.length ; i++) {
 					var event = e.events [i];
@@ -55,7 +54,7 @@ function start (app , express) {
 						continue;
 					var minutes = Math.floor( (diff / 1000) / 60);
 					//send mail to participants when event is due in < 20 minutes
-					if (minutes < 20) {
+					if (minutes < 60) {
 						for (var j = 0 ; j < event.custom_fields.participants.length ; j++) {
 							var email = event.custom_fields.participants [i].email;
 							var name = event.custom_fields.participants [i].name;
@@ -81,9 +80,6 @@ function start (app , express) {
 							custom_fields: event.custom_fields
 						} , function (e2) {
 							console.log(JSON.stringify(e2));
-							res.send({
-								status: "OK"
-							});
 						});
 					}
 				}

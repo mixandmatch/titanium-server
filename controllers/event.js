@@ -49,9 +49,9 @@ function byOffice (req , res) {
 			"all": ["id" , "name" , "start_time" , "place" , "latitude" , "longitude" , "username" , "status" , "lunchTag" , "participant_0" , "participant_1" , "participant_2" , "participant_3" , "participants"]
 		}) ,
 		where: JSON.stringify({
-			start_time: {
-			"$gte": moment()
-			} ,
+			// start_time: {
+			// "$gte": moment()
+			// } ,
 			"$or": [{
 				place_id: req.query.office_id
 			} , {
@@ -252,11 +252,11 @@ function create (req , res) {
 	var _ = require("underscore");
 	var moment = require("moment");
 
-	console.log("searching for existing lunch dates: " + moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00") + " at place_id = " + req.body.place_id);
+	console.log("searching for existing lunch dates: " + moment(req.body.start_time).format("YYYY-MM-DDTHH:mm:00ZZ") + " at place_id = " + req.body.place_id);
 
 	ACS.Events.query({
 
-		start_time: moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00ZZ") ,
+		start_time: moment(req.body.start_time).format("YYYY-MM-DDTHH:mm:00ZZ") ,
 		place_id: req.body.place_id
 
 	} , function (e) {
@@ -320,7 +320,7 @@ function create (req , res) {
 					//no matching lunch date found. create a new one.
 					ACS.Events.create({
 						name: req.body.name ,
-						start_time: moment(req.body.start_time).format("YYYY-MM-DDThh:mm:00ZZ") ,
+						start_time: moment(req.body.start_time).format("YYYY-MM-DDTHH:mm:00ZZ") ,
 						place_id: req.body.place_id ,
 						custom_fields: JSON.stringify({
 							participants: [{
