@@ -40,7 +40,6 @@ function start (app , express) {
 			}) ,
 			session_id: global.adminUserSession
 		} , function (e) {
-			console.log(JSON.stringify(e));
 			if (e.success) {
 				for (var i = 0 ; i < e.events.length ; i++) {
 					var event = e.events [i];
@@ -54,10 +53,11 @@ function start (app , express) {
 						continue;
 					var minutes = Math.floor( (diff / 1000) / 60);
 					//send mail to participants when event is due in < 20 minutes
-					if (minutes < 60) {
+					if (minutes < 20) {
 						for (var j = 0 ; j < event.custom_fields.participants.length ; j++) {
-							var email = event.custom_fields.participants [i].email;
-							var name = event.custom_fields.participants [i].name;
+							console.log(JSON.stringify(event.custom_fields));
+							var email = event.custom_fields.participants[j].email;
+							var name = event.custom_fields.participants[j].name;
 							ACS.Emails.send({
 								template: 'reminder' ,
 								from: "mixnmatch@thomas-reinberger.de" ,
