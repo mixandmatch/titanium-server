@@ -28,6 +28,10 @@
             "method": "get",
             "callback": "user#list"
         }, {
+            "path": "/user/submitIssue",
+            "method": "post",
+            "callback": "user#submitIssue"
+        }, {
             "path": "/event/",
             "method": "get",
             "callback": "event#list"

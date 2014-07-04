@@ -116,12 +116,12 @@ function register (req , res) {
 	}
 	finally {
 		if (fs.existsSync(tempfile)) {
-		
-		fs.unlink(tempfile , function (err) {
-		if (err)
-		console.log(err);
-		console.log('successfully deleted : ' + tempfile);
-		});
+
+			fs.unlink(tempfile , function (err) {
+				if (err)
+					console.log(err);
+				console.log('successfully deleted : ' + tempfile);
+			});
 		}
 	}
 
@@ -143,4 +143,49 @@ function resetPwd (req , res) {
 			});
 		}
 	} , req , res);
+}
+
+function submitIssue (req , res) {
+	var GitHubApi = require("github");
+
+	var github = new GitHubApi ({
+		// required
+		version: "3.0.0" ,
+		// optional
+		timeout: 5000
+	});
+
+	ACS.Objects.show({
+		classname: 'config' ,
+		ids: ["53b6716502cabd0826050985"]
+	} , function (e) {
+		if (e.success) {
+		    //temporary solution. oAuth preferred
+			github.authenticate({
+				type: "basic" ,
+				username: e.config[0].username ,
+				password: e.config[0].password
+			});
+
+			github.issues.create({
+			    user:"mixandmatch",
+			    repo:"titanium",
+			    title:"Problem report",
+			    body:req.body.content,
+			    labels: []
+			} , function (e2) {
+			    console.log(JSON.stringify(e2));
+				res.send(200 , {
+					status: "OK"
+				});
+			});
+		}
+		else {
+			res.send(500 , {
+				status: "ERROR" ,
+				description: JSON.stringify(e)
+			});
+		}
+	}, req, res);
+
 }
