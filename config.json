@@ -20,6 +20,10 @@
             "method": "post",
             "callback": "user#register"
         }, {
+            "path": "/user/saveFeedback",
+            "method": "post",
+            "callback": "user#saveFeedback"
+        },{
             "path": "/user/resetPwd",
             "method": "post",
             "callback": "user#resetPwd"
