@@ -4,7 +4,7 @@ var LatLon = require("latlon");
 
 function list (req , res) {
     
-    console.log("lat: " + req.query.lat * 1 + ", lon: " + req.query.lon * 1);
+    //console.log("lat: " + req.query.lat * 1 + ", lon: " + req.query.lon * 1);
     ACS.Places.query({
         //page: 1 ,
         //per_page: 10 ,
@@ -16,14 +16,15 @@ function list (req , res) {
             type: "office"
         }
         //,sel: JSON.stringify({all: ["id", "name", "address", "city", "postal_code", "latitude", "longitude", "photo", "photo.id", "photo.urls", "urls", "photo.urls.original"]})
-        ,sel: JSON.stringify({all: ["id", "name", "address", "city", "postal_code", "latitude", "longitude"]})
+        //,sel: JSON.stringify({"all": ["id", "name", "address", "city", "postal_code", "latitude", "longitude", "photo", "photo.urls", "photo.urls.original"]})
+        ,sel: JSON.stringify({"all": ["id", "name", "address", "city", "postal_code", "latitude", "longitude", "photo", "urls"]})
     } , function (e) {
         if (e.success) {
-            
+            console.log(JSON.stringify(e.places));
             //sort by distance to user location
             var latlon = new LatLon(req.query.lat, req.query.lon);
             
-            console.log(JSON.stringify(latlon));
+            //console.log(JSON.stringify(latlon));
             
             var sortedPlaces = _.sortBy(e.places, function(place) {
                 var distance = latlon.distanceTo(new LatLon(place.latitude, place.longitude));
@@ -31,12 +32,12 @@ function list (req , res) {
                 place.distance = distance;
                 return distance * 1;
             });
-            console.log("sorted Offices: " + JSON.stringify(sortedPlaces));
+            //console.log("sorted Offices: " + JSON.stringify(sortedPlaces));
             
             res.send(JSON.stringify(sortedPlaces));
         }
         else {
-            console.log(JSON.stringify(e));
+            //console.log(JSON.stringify(e));
             res.send(500, {
                 message: e.message,
                 status: "ERROR"

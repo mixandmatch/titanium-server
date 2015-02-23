@@ -16,6 +16,10 @@
             "method": "post",
             "callback": "user#login"
         }, {
+            "path": "/user/showme",
+            "method": "get",
+            "callback": "user#showme"
+        }, {
             "path": "/user/register",
             "method": "post",
             "callback": "user#register"
@@ -28,7 +32,7 @@
             "method": "post",
             "callback": "user#resetPwd"
         }, {
-            "path": "/user/search",
+            "path": "/user/",
             "method": "get",
             "callback": "user#list"
         }, {

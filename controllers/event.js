@@ -42,16 +42,16 @@ function byId (req , res) {
 
 function byOffice (req , res) {
 	console.log("event:byOffice id=" + req.query.office_id);
-	//find all events that take place at the specificed office OR
+	//find all events that take place at the specified office OR
 	// where the user is participant
 	ACS.Events.query({
 		sel: JSON.stringify({
 			"all": ["id" , "name" , "start_time" , "place" , "latitude" , "longitude" , "username" , "status" , "lunchTag" , "participant_0" , "participant_1" , "participant_2" , "participant_3" , "participants"]
 		}) ,
 		where: JSON.stringify({
-			// start_time: {
-			// "$gte": moment()
-			// } ,
+			start_time: {
+			"$gte": moment().subtract(1, 'days')
+			} ,
 			"$or": [{
 				place_id: req.query.office_id
 			} , {
