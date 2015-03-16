@@ -50,7 +50,7 @@ function byOffice (req , res) {
 		}) ,
 		where: JSON.stringify({
 			start_time: {
-			"$gte": moment().subtract(1, 'days')
+				"$gte": moment().subtract(1 , 'days')
 			} ,
 			"$or": [{
 				place_id: req.query.office_id
@@ -153,6 +153,21 @@ function join (req , res) {
 								custom_fields: custom_fields
 							} , function (e2) {
 								console.log(JSON.stringify(e2));
+
+								//if the user is not the first one to create an appointment, he
+								// gets 2 points reward
+								ACS.Users.update({
+								    session_id: req.cookies._session_id,
+									custom_fields: {
+									    
+										"score": {
+											"$inc": 2
+										}
+									}
+								} , function (e_user) {
+									console.log(JSON.stringify(e_user));
+								});
+
 								res.send({
 									status: "OK"
 								});
@@ -298,7 +313,7 @@ function create (req , res) {
 			var lunchTag;
 			console.log("admin User session = " + global.adminUserSession + " :-)");
 			ACS.Objects.update({
-				id: "53abc7f7924865084b05e59f" ,
+				id: "54f049757eead2058612973c" , //production
 				classname: 'counter' ,
 				fields: JSON.stringify({
 					counter: {
@@ -340,6 +355,20 @@ function create (req , res) {
 
 					} , function (e2) {
 						if (e2.success) {
+
+							//if the user is the first one to create an appointment, he
+							// gets 5 points reward
+							ACS.Users.update({
+							    session_id:req.cookies._session_id,
+								custom_fields: {
+									"score": {
+										"$inc": 5
+									}
+								}
+							} , function (e_user) {
+								console.log(JSON.stringify(e_user));
+							} , req , res);
+
 							res.send({
 								id: e2.events [0].id ,
 								action: "created" ,

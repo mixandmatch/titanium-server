@@ -1,5 +1,6 @@
 var ACS = require('acs-node');
 var _ = require("underscore");
+var moment = require('moment');
 
 function randomIntFromInterval (min , max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
@@ -11,8 +12,13 @@ function list (req , res) {
 	console.log("user/list/ new acs request ....");
 	ACS.Users.query({
 		sel: JSON.stringify({
-			"all": ["id" , "username" , "first_name" , "last_name" , "email" , "photo" , "urls"]
+			"all": ["id" , "username" , "first_name" , "last_name" , "email" , "photo" , "urls" , "score"]
 		}) ,
+		where: {
+			username: {
+				"$ne": "admin"
+			}
+		} ,
 		response_json_depth: 3 ,
 		page: req.body.page || 1 ,
 		per_page: req.body.per_page || 10000 // all?
@@ -20,7 +26,7 @@ function list (req , res) {
 		if (e.success) {
 			var users = e.users;
 			users = _.each(e.users , function (element , index , list) {
-				element.points = randomIntFromInterval(0 , 500);
+				element.points = element.custom_fields.score;
 			});
 
 			users = _.sortBy(e.users , "points").reverse();
@@ -46,8 +52,23 @@ function login (req , res) {
 		password: req.body.password
 	} , function (data) {
 		if (data.success) {
-			//res.cookie('_session_id',data.meta.session_id, { maxAge:
-			// 900000, httpOnly: true });
+
+			if ( typeof data.users [0].custom_fields.last_login === "undefined" || moment().diff(moment(data.users [0].custom_fields.last_login) , 'hours') >= 3) {
+
+				//frequent user reward: 1point
+				ACS.Users.update({
+					session_id: data.meta.session_id ,
+					custom_fields: {
+						"last_login": moment() ,
+						"score": {
+							"$inc": 1
+						}
+					}
+				} , function (e_user) {
+					console.log(JSON.stringify(e_user));
+				});
+			}
+
 			res.send({
 				sessionId: data.meta.session_id ,
 				user: data.users [0] ,
@@ -106,7 +127,11 @@ function register (req , res) {
 			first_name: req.body.first_name ,
 			last_name: req.body.last_name ,
 			password_confirmation: req.body.password ,
-			photo: tempfile
+			photo: tempfile ,
+			custom_fields: JSON.stringify({
+				score: 10 ,
+				"last_login": moment()
+			})
 		} , function (e) {
 			var user;
 			if (e.success) {
